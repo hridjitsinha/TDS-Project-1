@@ -20,7 +20,8 @@ import shlex
 app = FastAPI()
 
 # Set your OpenAI API key here or use environment variables
-openai.api_key = os.getenv("OPENAI_API_KEY")
+
+openai.api_key = os.getenv("eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjIzZjIwMDQzMTlAZHMuc3R1ZHkuaWl0bS5hYy5pbiJ9.4_QfcYiQAB7DTHMtUMyNprvu3Xz6ui-upXP17FFgEUM")
 
 def run_command(command: list):
     try:
@@ -37,7 +38,68 @@ def validate_path(path: str):
 @app.post("/run")
 async def run_task(task: str = Query(..., description="Task description")):
     try:
-        if "fetch data from an API" in task:
+        if "install uv and run" in task:
+            run_command(["pip", "install", "uv"])  # Ensure uv is installed
+            run_command(["python", "datagen.py", "23f2004319@ds.study.iitm.ac.in.email"])
+        elif "format /data/format.md" in task:
+            run_command(["npx", "prettier@3.4.2", "--write", "/data/format.md"])
+        elif "count the number of Wednesdays" in task:
+            with open("/data/dates.txt", "r") as f:
+                dates = [line.strip() for line in f]
+            count = sum(1 for date in dates if datetime.datetime.strptime(date, "%Y-%m-%d").weekday() == 2)
+            with open("/data/dates-wednesdays.txt", "w") as f:
+                f.write(str(count))
+        elif "sort contacts in /data/contacts.json" in task:
+            with open("/data/contacts.json", "r") as f:
+                contacts = json.load(f)
+            contacts.sort(key=lambda x: (x["last_name"], x["first_name"]))
+            with open("/data/contacts-sorted.json", "w") as f:
+                json.dump(contacts, f, indent=4)
+        elif "write first line of recent .log files" in task:
+            log_files = sorted(Path("/data/logs").glob("*.log"), key=os.path.getmtime, reverse=True)[:10]
+            with open("/data/logs-recent.txt", "w") as f:
+                for log in log_files:
+                    with open(log, "r") as lf:
+                        f.write(lf.readline())
+        elif "extract H1 titles from Markdown files" in task:
+            index = {}
+            for md_file in Path("/data/docs").glob("*.md"):
+                with open(md_file, "r") as f:
+                    for line in f:
+                        if line.startswith("#"):
+                            index[md_file.name] = line.strip("# ")
+                            break
+            with open("/data/docs/index.json", "w") as f:
+                json.dump(index, f, indent=4)
+        elif "extract sender’s email address" in task:
+            with open("/data/email.txt", "r") as f:
+                email_text = f.read()
+            response = openai.ChatCompletion.create(model="gpt-4o-mini", messages=[{"role": "user", "content": f"Extract the sender's email address: {email_text}"}])
+            sender_email = response["choices"][0]["message"]["content"].strip()
+            with open("/data/email-sender.txt", "w") as f:
+                f.write(sender_email)
+        elif "extract credit card number" in task:
+            image = Image.open("/data/credit-card.png")
+            response = openai.ChatCompletion.create(model="gpt-4o-mini", messages=[{"role": "user", "content": "Extract the credit card number from this image."}], files=[("image", image)])
+            card_number = response["choices"][0]["message"]["content"].strip()
+            with open("/data/credit-card.txt", "w") as f:
+                f.write(card_number)
+        elif "find the most similar pair of comments" in task:
+            with open("/data/comments.txt", "r") as f:
+                comments = [line.strip() for line in f]
+            response = openai.ChatCompletion.create(model="gpt-4o-mini", messages=[{"role": "user", "content": "Find the two most similar comments in this list."}], temperature=0.0)
+            similar_comments = response["choices"][0]["message"]["content"].strip()
+            with open("/data/comments-similar.txt", "w") as f:
+                f.write(similar_comments)
+        elif "calculate total sales of Gold tickets" in task:
+            conn = sqlite3.connect("/data/ticket-sales.db")
+            cursor = conn.cursor()
+            cursor.execute("SELECT SUM(price * units) FROM tickets WHERE type = 'Gold'")
+            total_sales = cursor.fetchone()[0]
+            conn.close()
+            with open("/data/ticket-sales-gold.txt", "w") as f:
+                f.write(str(total_sales))
+        elif "fetch data from an API" in task:
             url = task.split("fetch data from an API and save it ")[1]
             response = requests.get(url)
             with open("/data/api_data.json", "wb") as f:
