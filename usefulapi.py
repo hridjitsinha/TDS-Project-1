@@ -21,7 +21,7 @@ app = FastAPI()
 
 # Set your OpenAI API key here or use environment variables
 
-openai.api_key = os.getenv("eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjIzZjIwMDQzMTlAZHMuc3R1ZHkuaWl0bS5hYy5pbiJ9.4_QfcYiQAB7DTHMtUMyNprvu3Xz6ui-upXP17FFgEUM")
+openai.api_key = os.environ("eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjIzZjIwMDQzMTlAZHMuc3R1ZHkuaWl0bS5hYy5pbiJ9.4_QfcYiQAB7DTHMtUMyNprvu3Xz6ui-upXP17FFgEUM")
 
 def run_command(command: list):
     try:
